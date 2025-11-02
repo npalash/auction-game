@@ -12,7 +12,7 @@
   <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet" />
   <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
 
-  <!-- ✅ Alpine.js for modal interactivity -->
+  <!-- ✅ Alpine.js -->
   <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 
   <style>
@@ -23,19 +23,27 @@
   </style>
 </head>
 
-<!-- 🔹 We define Alpine scope here so it always exists -->
-<body class="min-h-screen text-gray-100 relative overflow-x-hidden" x-data="{ open: false }">
+<body class="min-h-screen text-gray-100 relative overflow-x-hidden" x-data="{ openCreate: false, openJoin: false }">
 
-  <!-- Header -->
-  <header class="text-center py-10">
-    <h1 class="text-4xl font-bold mb-2">🏷️ Live Auction Dashboard</h1>
-    <p class="text-gray-400">Track all ongoing auctions in real-time</p>
+  <!-- 🔹 Header -->
+  <header class="flex justify-between items-center px-10 py-8 border-b border-white/10">
+    <div class="text-left">
+      <h1 class="text-4xl font-bold mb-2">🏷️ Live Auction Dashboard</h1>
+      <p class="text-gray-400">Track all ongoing auctions in real-time</p>
+    </div>
+
+    <!-- 🔹 Join Room Button (Top Right) -->
+    <button 
+      @click="openJoin = true"
+      class="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-lg font-semibold shadow-md transition transform hover:scale-105"
+    >
+      🔗 Join Room
+    </button>
   </header>
 
-  <!-- Auction Grid -->
+  <!-- 🔹 Auction Grid -->
   <main class="container mx-auto px-6 pb-24">
     <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
-      
       {% for auction in auctions %}
       <div 
         class="bg-white/10 backdrop-blur-lg rounded-2xl p-6 shadow-lg border border-white/10 hover:scale-105 hover:shadow-2xl transition-transform duration-300 ease-out" 
@@ -58,11 +66,12 @@
         </p>
 
         <div class="mt-6 text-right">
-          <button class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white text-sm font-medium transition" id="{{ auction.code }}">Join Auction</button>
+          <button class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white text-sm font-medium transition" id="{{ auction.code }}">
+            Join Auction
+          </button>
         </div>
       </div>
       {% endfor %}
-
     </div>
   </main>
 
@@ -70,134 +79,148 @@
   <button 
     class="fixed bottom-8 right-8 bg-blue-600 hover:bg-blue-700 text-white rounded-full w-14 h-14 flex items-center justify-center text-3xl font-bold shadow-[0_0_20px_rgba(37,99,235,0.6)] hover:shadow-[0_0_30px_rgba(37,99,235,0.8)] transition-all duration-300"
     title="Add New Auction"
-    @click="open = true"
+    @click="openCreate = true"
     id="plus"
   >+</button>
 
-  <!-- ✅ Modal Overlay -->
+  <!-- ✅ Create Auction Modal -->
   <div 
-    class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 transition-opacity duration-300"
-    x-show="open"
+    class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50"
+    x-show="openCreate"
     x-transition.opacity
   >
-    <!-- Modal Box -->
     <div 
-      class="bg-white/10 border border-white/20 backdrop-blur-lg rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl transform transition-all duration-300 scale-95"
-      x-show="open"
+      class="bg-white/10 border border-white/20 backdrop-blur-lg rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl transform transition-all duration-300"
+      x-show="openCreate"
       x-transition.scale
-      @click.away="open = false"
-    > 
+      @click.away="openCreate = false"
+    >
       <h2 class="text-2xl font-bold text-center mb-6 text-white">Create your own Auction!</h2>
 
-      <!-- ✅ Updated form -->
-      <!-- <form enctype="multipart/form-data" class="space-y-4" method="POST",id="formbox", action="/create_auction"> -->
-        
-        <!-- Name -->
+      <div class="space-y-4">
         <div>
           <label class="block text-gray-200 mb-1">Name</label>
-          <input name="name" type="text" required class="w-full p-2 rounded-lg bg-white/20 text-white border border-white/30 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter your name"  id="name">
+          <input id="name" type="text" required class="w-full p-2 rounded-lg bg-white/20 text-white border border-white/30 focus:ring-2 focus:ring-blue-500" placeholder="Enter your name">
         </div>
 
         <div>
           <label class="block text-gray-200 mb-1">Item Name</label>
-          <input name="item" id="item" type="text" required class="w-full p-2 rounded-lg bg-white/20 text-white border border-white/30 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter item name">
+          <input id="item" type="text" required class="w-full p-2 rounded-lg bg-white/20 text-white border border-white/30 focus:ring-2 focus:ring-blue-500" placeholder="Enter item name">
         </div>
 
-        <!-- Email -->
-        <div>
-          <label class="block text-gray-200 mb-1">Email</label>
-          <input name="email" type="email" required class="w-full p-2 rounded-lg bg-white/20 text-white border border-white/30 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="you@example.com" id="email"> 
-        </div>
-
-        <!-- Visibility -->
         <div>
           <label class="block text-gray-200 mb-2">Keep Auction Public/Private</label>
           <div class="flex space-x-4 text-gray-200">
             <label class="flex items-center space-x-2">
-              <input type="radio" name="visibility" value="public" required class="text-blue-500 focus:ring-blue-400">
+              <input type="radio" name="visibility" value="public" required>
               <span>Public</span>
             </label>
             <label class="flex items-center space-x-2">
-              <input type="radio" name="visibility" value="private" required class="text-blue-500 focus:ring-blue-400">
+              <input type="radio" name="visibility" value="private" required>
               <span>Private</span>
             </label>
           </div>
         </div>
 
-        <!-- Image Upload -->
-        <!-- <div>
-          <label class="block text-gray-200 mb-1">Image of the Auction</label>
-          <input name="image" type="file" accept="image/*" required class="w-full text-sm text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer" id="image">
-        </div> -->
-
-        <!-- Starting Price -->
         <div>
           <label class="block text-gray-200 mb-1">Starting Price (INR)</label>
-          <input name="starting_price" type="number" required class="w-full p-2 rounded-lg bg-white/20 text-white border border-white/30 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter amount" id="price">
+          <input id="price" type="number" required class="w-full p-2 rounded-lg bg-white/20 text-white border border-white/30 focus:ring-2 focus:ring-blue-500" placeholder="Enter amount">
         </div>
 
-        <!-- Submit -->
         <div class="text-center mt-6">
-          <button type="submit" id="create" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold transition">
+          <button id="create" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold transition">
             Create →
           </button>
         </div>
-      <!-- </form> -->
+      </div>
 
-      <!-- Close -->
-      <button @click="open = false" class="absolute top-4 right-4 text-gray-300 hover:text-white text-2xl leading-none">&times;</button>
+      <button @click="openCreate = false" class="absolute top-4 right-4 text-gray-300 hover:text-white text-2xl">&times;</button>
     </div>
   </div>
 
+  <!-- ✅ Join Room Modal -->
+  <div 
+    class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50"
+    x-show="openJoin"
+    x-transition.opacity
+  >
+    <div 
+      class="bg-white/10 border border-white/20 backdrop-blur-lg rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl transform transition-all duration-300"
+      x-show="openJoin"
+      x-transition.scale
+      @click.away="openJoin = false"
+    >
+      <h2 class="text-2xl font-bold text-center mb-6 text-white">Join an Auction Room</h2>
+
+      <div class="space-y-4">
+        <div>
+          <label class="block text-gray-200 mb-1">Your Name</label>
+          <input id="joinName" type="text" required class="w-full p-2 rounded-lg bg-white/20 text-white border border-white/30 focus:ring-2 focus:ring-green-500" placeholder="Enter your name">
+        </div>
+
+        <div>
+          <label class="block text-gray-200 mb-1">Room Code</label>
+          <input id="joinCode" type="text" required class="w-full p-2 rounded-lg bg-white/20 text-white border border-white/30 focus:ring-2 focus:ring-green-500" placeholder="Enter room code">
+        </div>
+
+        <div class="text-center mt-6">
+          <button id="joinSubmit" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-semibold transition">
+            Join →
+          </button>
+        </div>
+      </div>
+
+      <button @click="openJoin = false" class="absolute top-4 right-4 text-gray-300 hover:text-white text-2xl">&times;</button>
+    </div>
+  </div>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js" integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA==" crossorigin="anonymous"></script>
 
   <script>
     AOS.init({ duration: 800, once: true });
+    const socket = io.connect();
 
-    const socket = io.connect()
-
-    function gen_code(len){
-      const char = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
-      let passw = ""
-      const values = new Uint32Array(len)
-
-      window.crypto.getRandomValues(values)
-
-      for (let i=0;i<len;i++){
-        passw += char[values[i]%char.length]
-      }
-
-      return passw 
+    function gen_code(len) {
+      const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
+      let code = "";
+      const vals = new Uint32Array(len);
+      window.crypto.getRandomValues(vals);
+      for (let i = 0; i < len; i++) code += chars[vals[i] % chars.length];
+      return code;
     }
 
-    buttons = document.querySelectorAll('button')
-    
-    buttons.forEach(bb => {
-      bb.addEventListener("click", ()=>{
-      if (bb.id === "plus" || "create"){
-        if (bb.id === "create"){
+    document.getElementById("create").addEventListener("click", () => {
+      const code = gen_code(7);
+      socket.emit("create", {
+        code,
+        username: document.getElementById("name").value,
+        price: document.getElementById("price").value,
+        type: document.querySelector('input[name="visibility"]:checked').value,
+        item: document.getElementById("item").value
+      });
+      sessionStorage.setItem("username", document.getElementById("name").value);
+      window.location.href = `/aucroom/${code}`;
+    });
 
-          code = gen_code(7)
-
-          socket.emit("create", {
-            code: code, 
-            username: document.getElementById("name").value,
-            price: document.getElementById("price").value,
-            type: document.querySelector('input[name="visibility"]:checked'),
-            item: document.getElementById("item")
-          })
-          console.log("CREATED")
-        }
-
-        window.location.href = `/aucroom/${code}`
+    document.getElementById("joinSubmit").addEventListener("click", () => {
+      const name = document.getElementById("joinName").value;
+      const code = document.getElementById("joinCode").value;
+      if (name && code) {
+        sessionStorage.setItem("username", name);
+        window.location.href = `/aucroom/${code}`;
       }
-      
-      else{
-        let name = prompt("Enter your name to join:")
-        socket.emit("join", {code: bb.id, username: name}) 
+    });
+
+    document.querySelectorAll('button[id]').forEach(bb => {
+      if (bb.id !== "plus" && bb.id !== "create" && bb.id !== "joinSubmit") {
+        bb.addEventListener("click", () => {
+          const name = prompt("Enter your name to join:");
+          if (name) {
+            sessionStorage.setItem("username", name);
+            window.location.href = `/aucroom/${bb.id}`;
+          }
+        });
       }
-    }) 
-    })
+    });
   </script>
 </body>
 </html>
