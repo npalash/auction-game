@@ -28,8 +28,13 @@
 <body class="text-gray-100 min-h-screen flex flex-col">
   <!-- HEADER -->
   <header class="flex items-center justify-between px-6 py-4 border-b border-gray-700/50">
-    <h1 class="text-2xl font-bold">💬 Auction Chatroom</h1>
+    <div>
+        <h1 class="text-2xl font-bold">💬 Auction Chatroom</h1>
+    <p class="text-gray-400 text-sm">Name: <span class="font-semibold text-blue-400" id="yname"></span></p>
     <p class="text-gray-400 text-sm">Auction: <span class="font-semibold text-blue-400">{{ title }}</span></p>
+    </div>
+
+      <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-semibold shadow-md transition transform hover:scale-105" id="leave">Leave Auction ✖</button>
   </header>
 
   <!-- MAIN AREA -->
@@ -47,13 +52,6 @@
           <span class="font-semibold text-yellow-300">{{ starter }}</span>
           <span class="text-xs bg-yellow-600/40 text-yellow-200 px-2 py-0.5 rounded-md">Host</span>
         </div>
-
-        <!-- Other members -->
-        {% for member in members %}
-        <div class="bg-white/5 hover:bg-white/10 p-3 rounded-lg transition">
-          <span class="text-gray-200">{{ member }}</span>
-        </div>
-        {% endfor %}
       </div>
     </aside>
 
@@ -75,33 +73,71 @@
       </div>
 
       <!-- 📨 Chat Input -->
-      <form 
-        class="p-4 border-t border-gray-700/40 flex items-center space-x-3 bg-gray-900/50 backdrop-blur-lg"
-        @submit.prevent="
-          if (newMessage.trim() !== '') {
-            messages.push({ sender: 'You', text: newMessage });
-            newMessage = '';
-            $nextTick(() => {
-              const chat = document.getElementById('chatWindow');
-              chat.scrollTop = chat.scrollHeight;
-            });
-          }
-        "
-      >
+      <form class="p-4 border-t border-gray-700/40 flex items-center space-x-3 bg-gray-900/50 backdrop-blur-lg" id="chatForm">
         <input 
           type="text"
           x-model="newMessage"
           placeholder="Type a message..."
+          id="msgs"
           class="flex-1 p-2 rounded-lg bg-white/10 text-white border border-white/20 focus:ring-2 focus:ring-blue-500 focus:outline-none"
         >
         <button 
-          type="submit"
           class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg font-semibold shadow-lg transition"
+          id="sendmsg"
         >
           Send →
         </button>
       </form>
     </main>
   </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js" integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA==" crossorigin="anonymous"></script>
+
+  <script>
+  const socket = io.connect()
+  const form = document.getElementById("chatForm");
+  const messageInput = document.getElementById("messageInput");
+  const chatWindow = document.getElementById("chatWindow");
+  const messages = [];
+
+  document.getElementById("yname").innerText = sessionStorage.getItem("username")
+  socket.emit("join", {code: window.location.href.split("/")[4], joiner: sessionStorage.getItem("username")})
+  
+  socket.on("receive_message", (data)=>{
+        messages.push({ sender: data["username"], text: data["msg"] });
+
+        const msgDiv = document.createElement("div");
+        msgDiv.className = "flex flex-col mb-2";
+        msgDiv.innerHTML = `<div class="bg-blue-600/40 p-3 rounded-lg w-fit max-w-md self-end">
+            <p class="text-sm text-white">${data["msg"]}</p>
+          </div>
+          <span class="text-xs text-gray-400 mt-1 self-end">${data["username"]}</span>`
+
+        chatWindow.appendChild(msgDiv);
+        }) 
+
+  document.getElementById("sendmsg").addEventListener("click", (e) => {
+    e.preventDefault();
+
+    const newMessage = document.getElementById("msgs").value
+    if (newMessage === "") return;
+    
+    socket.emit("send_message", {
+      code: window.location.href.split("/")[4],
+      msg: newMessage,
+      username: sessionStorage.getItem("username")
+    });
+    document.getElementById("msgs").value = ""
+    })
+
+  chatWindow.scrollTop = chatWindow.scrollHeight;
+
+  document.getElementById("leave").addEventListener("click", ()=>{
+    socket.emit("leave", {code: window.location.href.split("/")[4]})
+    sessionStorage.removeItem(document.getElementById("yname").innerText)
+    window.location.href = "http://127.0.0.1:5000"
+  })
+
+  </script>
 </body>
 </html>
